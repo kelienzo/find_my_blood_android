@@ -11,6 +11,7 @@ import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import live.adabe.findmyblood.R
 import live.adabe.findmyblood.databinding.FragmentSignUpBinding
+import live.adabe.findmyblood.loadingdialog.LoadingProgress
 import live.adabe.findmyblood.models.network.signup.SignUpRequest
 import live.adabe.findmyblood.viewmodels.AuthViewModel
 import live.adabe.findmyblood.viewmodels.ViewModelFactory
@@ -20,6 +21,7 @@ class SignUpFragment : Fragment() {
     private lateinit var binding: FragmentSignUpBinding
     private lateinit var viewModel: AuthViewModel
     private lateinit var factory: ViewModelFactory
+    private lateinit var loadingProgress: LoadingProgress
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,6 +31,7 @@ class SignUpFragment : Fragment() {
         binding = FragmentSignUpBinding.inflate(inflater, container, false)
         factory = ViewModelFactory(requireActivity(), 1)
         viewModel = ViewModelProvider(requireActivity(), factory)[AuthViewModel::class.java]
+        loadingProgress = LoadingProgress(requireActivity())
 
         binding.apply {
             btnRegister.setOnClickListener {
@@ -47,6 +50,7 @@ class SignUpFragment : Fragment() {
         viewModel.isSignUpSuccessful.observe(viewLifecycleOwner, { isSuccessful ->
             if (isSuccessful) {
                 findNavController().navigate(R.id.action_signUpFragment_to_loginFragment)
+                loadingProgress.endLoading()
             } else {
                 makeToast("Sign up Failed! \nPlease try again")
             }
@@ -65,8 +69,8 @@ class SignUpFragment : Fragment() {
 
             //InputCheck function called to check if the textFields are empty
             if (inputCheck(nameOfHospital, email, password, confirmPassword)) {
+                loadingProgress.startLoading()
                 val signUpRequest = SignUpRequest(nameOfHospital, email, password, confirmPassword)
-
                 //Adds new hospital
                 viewModel.signUpHospital(signUpRequest)
             } else {

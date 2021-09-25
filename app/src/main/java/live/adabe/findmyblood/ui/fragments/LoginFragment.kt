@@ -11,6 +11,7 @@ import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import live.adabe.findmyblood.R
 import live.adabe.findmyblood.databinding.FragmentLoginBinding
+import live.adabe.findmyblood.loadingdialog.LoadingProgress
 import live.adabe.findmyblood.models.network.login.LoginRequest
 import live.adabe.findmyblood.viewmodels.AuthViewModel
 import live.adabe.findmyblood.viewmodels.ViewModelFactory
@@ -20,6 +21,7 @@ class LoginFragment : Fragment() {
     private lateinit var binding: FragmentLoginBinding
     private lateinit var viewModel: AuthViewModel
     private lateinit var factory: ViewModelFactory
+    private lateinit var loadingProgress: LoadingProgress
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,6 +31,7 @@ class LoginFragment : Fragment() {
         binding = FragmentLoginBinding.inflate(inflater, container, false)
         factory = ViewModelFactory(requireActivity(), 1)
         viewModel = ViewModelProvider(requireActivity(), factory)[AuthViewModel::class.java]
+        loadingProgress = LoadingProgress(requireActivity())
 
         binding.apply {
 
@@ -45,6 +48,7 @@ class LoginFragment : Fragment() {
         viewModel.isLoginSuccessful.observe(viewLifecycleOwner, { isSuccessful ->
             if (isSuccessful) {
                 findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+                loadingProgress.endLoading()
             } else {
                 makeToast("Login failed! \nPlease try again")
             }
@@ -59,8 +63,8 @@ class LoginFragment : Fragment() {
             val password = textInputLoginPassword.editText?.text.toString()
 
             if (inputCheck(email, password)) {
+                loadingProgress.startLoading()
                 val loginRequest = LoginRequest(email, password)
-
                 viewModel.loginHospital(loginRequest)
             } else {
                 makeToast("Please fill out all fields")
